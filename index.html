@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fetch API Test</title>
+</head>
+<body>
+    <!-- HTML -->
+<section aria-labelledby="posts-title">
+  <h2 id="posts-title">Latest posts</h2>
+  <div id="status" role="status" aria-live="polite">Loading…</div>
+  <ul id="posts" hidden></ul>
+</section>
+
+<script>
+async function loadPosts() {
+  var statusEl = document.getElementById('status');
+  var listEl   = document.getElementById('posts');
+
+  // 1) Loading state
+  statusEl.textContent = 'Loading…';
+  statusEl.hidden = false;
+  listEl.hidden   = true;
+
+  try {
+    // 2) Fetch over HTTPS, no credentials, no secrets in the URL
+    var response = await fetch('https://jsonplaceholder.typicode.com/posts');
+    if (!response.ok) {
+      throw new Error('Server returned ' + response.status);
+    }
+    var posts = await response.json();
+
+    // 3) Empty state
+    if (!Array.isArray(posts) || posts.length === 0) {
+      statusEl.textContent = 'No posts found.';
+      return;
+    }
+
+    // 4) Render — textContent + createElement only
+    var frag = document.createDocumentFragment();
+    posts.slice(0, 10).forEach(function (post) {
+      var li = document.createElement('li');
+
+      var title = document.createElement('strong');
+      title.textContent = String(post.title || 'Untitled');
+
+      var body  = document.createElement('p');
+      body.textContent = String(post.body || '');
+
+      li.append(title, body);
+      frag.appendChild(li);
+    });
+
+    listEl.replaceChildren(frag);
+    statusEl.hidden = true;
+    listEl.hidden   = false;
+
+  } catch (err) {
+    // 5) Error state — short, user-facing, no stack traces
+    console.error(err);
+    statusEl.textContent =
+      'We couldn’t load the latest posts. Please refresh and try again.';
+  }
+}
+
+loadPosts();
+</script>
+</body>
+</html>
